@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Portfolio & Live Showcase Generator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* Glassmorphism effects */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.7);
+        }
+    </style>
+</head>
+<body class="text-slate-100 antialiased p-4 md:p-8">
+
+    <!-- Header & Hero Section -->
+    <header class="max-w-7xl mx-auto mb-8 text-center">
+        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full glass-panel mb-4 text-xs md:text-sm text-blue-400 font-medium">
+            <i class="fa-brands fa-github text-lg"></i>
+            <span>GitHub Portfolio Showcase & Live Demo Runner</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white mb-3">
+            הצגת הפרויקטים מ-<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">GitHub</span> בלייב
+        </h1>
+        <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
+            הכנס את שם המשתמש שלך ב-GitHub כדי למשוך את כל הריפוזטורים הציבוריים שלך, להציג את נתוניהם ולהריץ אותם ישירות מתוך הדף!
+        </p>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto space-y-6">
+
+        <!-- Controls Card: Username Input & Filters -->
+        <section class="glass-panel rounded-2xl p-6 shadow-xl">
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                
+                <!-- Username Search Form -->
+                <form id="userSearchForm" class="w-full md:w-auto flex-1 flex gap-2">
+                    <div class="relative flex-1">
+                        <i class="fa-brands fa-github absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input type="text" id="githubUsername" placeholder="הכנס שם משתמש (למשל: octocat)"
+                            class="w-full pl-4 pr-11 py-3 bg-slate-900/80 border border-slate-700/70 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    </div>
+                    <button type="submit" id="fetchBtn"
+                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 shrink-0">
+                        <i class="fa-solid fa-rotate text-sm"></i>
+                        <span>טען פרויקטים</span>
+                    </button>
+                </form>
+
+                <!-- Filter & Search Section (Visible when user loaded) -->
+                <div id="filterControls" class="w-full md:w-auto flex flex-wrap md:flex-nowrap gap-3 hidden">
+                    <!-- Text Search in Repos -->
+                    <div class="relative flex-1 md:w-48">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input type="text" id="repoSearchInput" placeholder="חפש פרויקט..."
+                            class="w-full pl-3 pr-8 py-2 bg-slate-900/60 border border-slate-700/60 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <!-- Language Filter Dropdown -->
+                    <select id="langFilter" class="bg-slate-900/60 border border-slate-700/60 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                        <option value="ALL">כל השפות</option>
+                    </select>
+
+                    <!-- Sort Dropdown -->
+                    <select id="sortSelect" class="bg-slate-900/60 border border-slate-700/60 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                        <option value="updated">עודכן לאחרונה</option>
+                        <option value="stars">הכי הרבה כוכבים</option>
+                        <option value="name">לפי שם</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Profile Info Bar (Hidden by default) -->
+        <section id="userProfileBar" class="glass-panel rounded-2xl p-6 hidden">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4 text-center sm:text-right">
+                    <img id="userAvatar" src="" alt="Avatar" class="w-16 h-16 rounded-full border-2 border-blue-500 shadow-md">
+                    <div>
+                        <h2 id="userName" class="text-xl font-bold text-white"></h2>
+                        <a id="userGithubLink" href="" target="_blank" class="text-xs text-blue-400 hover:underline flex items-center gap-1 justify-center sm:justify-start mt-0.5">
+                            <i class="fa-brands fa-github"></i>
+                            <span id="userHandle"></span>
+                        </a>
+                        <p id="userBio" class="text-slate-400 text-sm mt-1 max-w-xl line-clamp-2"></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6 bg-slate-900/40 px-5 py-3 rounded-xl border border-slate-800 text-center">
+                    <div>
+                        <div id="statRepos" class="text-xl font-black text-blue-400">0</div>
+                        <div class="text-xs text-slate-400">פרויקטים</div>
+                    </div>
+                    <div class="w-px h-8 bg-slate-700/50"></div>
+                    <div>
+                        <div id="statStars" class="text-xl font-black text-amber-400">0</div>
+                        <div class="text-xs text-slate-400">כוכבים בסה"כ</div>
+                    </div>
+                    <div class="w-px h-8 bg-slate-700/50"></div>
+                    <div>
+                        <div id="statFollowers" class="text-xl font-black text-emerald-400">0</div>
+                        <div class="text-xs text-slate-400">עוקבים</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Content Area -->
+        <div id="statusMessage" class="glass-panel rounded-2xl p-12 text-center text-slate-400">
+            <i class="fa-solid fa-code text-4xl mb-3 text-blue-500/60"></i>
+            <h3 class="text-lg font-semibold text-slate-200">הכנס שם משתמש ב-GitHub כדי להתחיל</h3>
+            <p class="text-sm text-slate-400 mt-1">מערכת תטען את כל הריפוזטורים הציבוריים שלך ותאפשר הרצה בלייב</p>
+        </div>
+
+        <!-- Repos Grid -->
+        <section id="reposGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- Repos cards will be injected here dynamically -->
+        </section>
+
+    </main>
+
+    <!-- Modal for Live Preview -->
+    <div id="previewModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 bg-slate-800/80 border-b border-slate-700/80">
+                <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                    <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                    <h3 id="modalTitle" class="font-bold text-slate-200 text-sm md:text-base mr-2">תצוגה מקדימה</h3>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <a id="modalExternalLink" href="#" target="_blank" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span>פתח בחלון חדש</span>
+                    </a>
+                    <button id="closeModalBtn" class="text-slate-400 hover:text-white p-2 rounded-lg text-lg transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content (IFrame Frame) -->
+            <div class="relative flex-1 bg-slate-950">
+                <!-- Loading Spinner inside iframe container -->
+                <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-300 gap-3 z-10">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500"></i>
+                    <p class="text-sm font-medium">טוען את תצוגת הפרויקט בלייב...</p>
+                </div>
+
+                <!-- Fallback Warning Banner if iframe blocks loading -->
+                <div id="iframeFallback" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/95 text-slate-300 p-6 text-center gap-4 hidden z-20">
+                    <div class="w-16 h-16 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl border border-amber-500/20">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="max-w-md">
+                        <h4 class="text-lg font-bold text-white mb-1">לא ניתן להציג את האתר בתוך חלון פנימי</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            ייתכן שפתרון האחסון ב-GitHub Pages לא הופעל עבור הריפוזטורי הזה, או שהפרויקט חוסם תצוגת iFrame.
+                        </p>
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <a id="fallbackGithubPagesBtn" href="#" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-all">
+                                נסה לפתוח את GitHub Pages בלשונית חדשה
+                            </a>
+                            <a id="fallbackRepoBtn" href="#" target="_blank" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-all">
+                                עבור לקוד ב-GitHub
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actual Live Preview IFrame -->
+                <iframe id="previewIframe" class="w-full h-full border-none" src="" title="Live Preview"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State variables
+        let currentRepos = [];
+        let currentUsername = '';
+
+        // UI DOM Elements
+        const userSearchForm = document.getElementById('userSearchForm');
+        const githubUsernameInput = document.getElementById('githubUsername');
+        const fetchBtn = document.getElementById('fetchBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const reposGrid = document.getElementById('reposGrid');
+        const filterControls = document.getElementById('filterControls');
+        const langFilter = document.getElementById('langFilter');
+        const repoSearchInput = document.getElementById('repoSearchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const userProfileBar = document.getElementById('userProfileBar');
+
+        // Modal Elements
+        const previewModal = document.getElementById('previewModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const previewIframe = document.getElementById('previewIframe');
+        const iframeLoader = document.getElementById('iframeLoader');
+        const iframeFallback = document.getElementById('iframeFallback');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalExternalLink = document.getElementById('modalExternalLink');
+        const fallbackGithubPagesBtn = document.getElementById('fallbackGithubPagesBtn');
+        const fallbackRepoBtn = document.getElementById('fallbackRepoBtn');
+
+        // On Load initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if username parameter exists in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const userParam = urlParams.get('user');
+            if (userParam) {
+                githubUsernameInput.value = userParam;
+                fetchUserData(userParam);
+            }
+        });
+
+        // Form Submit Handler
+        userSearchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = githubUsernameInput.value.trim();
+            if (username) {
+                // Update URL query string safely (handle iframe/sandbox restrictions)
+                try {
+                    const newUrl = `${window.location.pathname}?user=${encodeURIComponent(username)}`;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                } catch (err) {
+                    console.warn('History pushState is restricted in this environment:', err);
+                }
+                fetchUserData(username);
+            }
+        });
+
+        // Fetch User Data and Repositories from GitHub REST API
+        async function fetchUserData(username) {
+            currentUsername = username;
+            showLoadingState();
+
+            try {
+                // Fetch User Details & Repositories in Parallel
+                const [userRes, reposRes] = await Promise.all([
+                    fetch(`https://api.github.com/users/${username}`),
+                    fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`)
+                ]);
+
+                if (!userRes.ok) {
+                    if (userRes.status === 404) throw new Error('משתמש זה לא נמצא ב-GitHub');
+                    if (userRes.status === 403) throw new Error('הגעת למגבלת הקריאות של GitHub API. אנא נסה שוב מאוחר יותר.');
+                    throw new Error('שגיאה בטעינת הנתונים מ-GitHub');
+                }
+
+                const userData = await userRes.json();
+                const reposData = await reposRes.json();
+
+                // Process data
+                currentRepos = reposData.filter(repo => !repo.fork); // Optional: filter out forks if needed or keep all
+
+                // Update Profile Bar
+                renderUserProfile(userData, reposData);
+                
+                // Populate Language Dropdown
+                populateLanguageFilter(currentRepos);
+
+                // Render Repositories
+                renderFilteredRepos();
+
+            } catch (err) {
+                showErrorState(err.message);
+            }
+        }
+
+        // Render User Profile Information
+        function renderUserProfile(user, repos) {
+            document.getElementById('userAvatar').src = user.avatar_url;
+            document.getElementById('userName').textContent = user.name || user.login;
+            document.getElementById('userHandle').textContent = `@${user.login}`;
+            document.getElementById('userGithubLink').href = user.html_url;
+            document.getElementById('userBio').textContent = user.bio || 'אין תיאור בפרופיל';
+
+            // Calculate Total Stars
+            const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+
+            document.getElementById('statRepos').textContent = repos.length;
+            document.getElementById('statStars').textContent = totalStars;
+            document.getElementById('statFollowers').textContent = user.followers;
+
+            userProfileBar.classList.remove('hidden');
+            filterControls.classList.remove('hidden');
+        }
+
+        // Populate Language Options
+        function populateLanguageFilter(repos) {
+            const languages = new Set();
+            repos.forEach(repo => {
+                if (repo.language) languages.add(repo.language);
+            });
+
+            langFilter.innerHTML = '<option value="ALL">כל השפות</option>';
+            languages.forEach(lang => {
+                const option = document.createElement('option');
+                option.value = lang;
+                option.textContent = lang;
+                langFilter.appendChild(option);
+            });
+        }
+
+        // Filter and Render Cards
+        function renderFilteredRepos() {
+            const searchTerm = repoSearchInput.value.toLowerCase();
+            const selectedLang = langFilter.value;
+            const sortBy = sortSelect.value;
+
+            let filtered = currentRepos.filter(repo => {
+                const matchesSearch = repo.name.toLowerCase().includes(searchTerm) || 
+                                     (repo.description && repo.description.toLowerCase().includes(searchTerm));
+                const matchesLang = selectedLang === 'ALL' || repo.language === selectedLang;
+                return matchesSearch && matchesLang;
+            });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                if (sortBy === 'stars') return b.stargazers_count - a.stargazers_count;
+                if (sortBy === 'name') return a.name.localeCompare(b.name);
+                return new Date(b.updated_at) - new Date(a.updated_at); // updated
+            });
+
+            if (filtered.length === 0) {
+                reposGrid.classList.add('hidden');
+                statusMessage.innerHTML = `
+                    <i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-500"></i>
+                    <h3 class="text-lg font-semibold text-slate-200">לא נמצאו פרויקטים מתאימים</h3>
+                    <p class="text-sm text-slate-400 mt-1">נסה לשנות את הסינון או חיפוש המילים</p>
+                `;
+                statusMessage.classList.remove('hidden');
+                return;
+            }
+
+            statusMessage.classList.add('hidden');
+            reposGrid.classList.remove('hidden');
+            reposGrid.innerHTML = '';
+
+            filtered.forEach(repo => {
+                const card = createRepoCard(repo);
+                reposGrid.appendChild(card);
+            });
+        }
+
+        // Create Individual Repo Card Component
+        function createRepoCard(repo) {
+            const card = document.createElement('div');
+            card.className = 'glass-card rounded-2xl p-5 flex flex-col justify-between relative group';
+
+            // GitHub Pages URL standard structure: https://username.github.io/reponame
+            const hasPages = repo.has_pages;
+            const livePagesUrl = `https://${currentUsername}.github.io/${repo.name}/`;
+
+            const updatedDate = new Date(repo.updated_at).toLocaleDateString('he-IL', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            card.innerHTML = `
+                <div>
+                    <!-- Top Badge & Header -->
+                    <div class="flex items-start justify-between gap-2 mb-3">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <i class="fa-solid fa-book-bookmark text-blue-400 shrink-0"></i>
+                            <h3 class="font-bold text-slate-100 text-base truncate group-hover:text-blue-400 transition-colors" title="${repo.name}">
+                                ${repo.name}
+                            </h3>
+                        </div>
+                        ${hasPages ? 
+                            `<span class="px-2 py-0.5 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full font-medium flex items-center gap-1 shrink-0">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Pages פעיל
+                            </span>` : ''
+                        }
+                    </div>
+
+                    <!-- Description -->
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4 line-clamp-3 min-h-[2.5rem]">
+                        ${repo.description || 'אין תיאור זמין עבור פרויקט זה.'}
+                    </p>
+                </div>
+
+                <div>
+                    <!-- Metadata info (Stars, Language, Date) -->
+                    <div class="flex items-center gap-4 text-xs text-slate-400 mb-4 border-t border-slate-700/40 pt-3">
+                        ${repo.language ? `
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${getLanguageColor(repo.language)}"></span>
+                                ${repo.language}
+                            </span>` : ''
+                        }
+                        <span class="flex items-center gap-1 text-amber-400">
+                            <i class="fa-regular fa-star"></i> ${repo.stargazers_count}
+                        </span>
+                        <span class="mr-auto text-[11px] text-slate-500">
+                            ${updatedDate}
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="openLivePreview('${livePagesUrl}', '${repo.name}', '${repo.html_url}')"
+                            class="w-full py-2 px-3 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-play text-[10px]"></i>
+                            <span>הרצה בלייב</span>
+                        </button>
+                        
+                        <a href="${repo.html_url}" target="_blank"
+                            class="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-brands fa-github"></i>
+                            <span>קוד ב-GitHub</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        // Open Live Preview Modal Function
+        window.openLivePreview = function(liveUrl, repoName, githubUrl) {
+            modalTitle.textContent = `תצוגה מקדימה: ${repoName}`;
+            modalExternalLink.href = liveUrl;
+            fallbackGithubPagesBtn.href = liveUrl;
+            fallbackRepoBtn.href = githubUrl;
+
+            // Reset states
+            iframeLoader.classList.remove('hidden');
+            iframeFallback.classList.add('hidden');
+            previewIframe.src = liveUrl;
+
+            // Modal Display
+            previewModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Timer to detect if iframe loaded or timed out (fallback)
+            const iframeTimeout = setTimeout(() => {
+                iframeLoader.classList.add('hidden');
+            }, 1500);
+
+            previewIframe.onload = () => {
+                clearTimeout(iframeTimeout);
+                iframeLoader.classList.add('hidden');
+            };
+        };
+
+        // Close Modal Handler
+        closeModalBtn.addEventListener('click', closeModal);
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) closeModal();
+        });
+
+        function closeModal() {
+            previewModal.classList.add('hidden');
+            previewIframe.src = ''; // stop loading or playing audio in background
+            document.body.style.overflow = '';
+        }
+
+        // Helper UI States
+        function showLoadingState() {
+            statusMessage.innerHTML = `
+                <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-3 text-blue-500"></i>
+                <h3 class="text-lg font-semibold text-slate-200">טוען נתונים מ-GitHub...</h3>
+                <p class="text-sm text-slate-400 mt-1">אוסף את הריפוזטורים והפרטים עבור @${currentUsername}</p>
+            `;
+            statusMessage.classList.remove('hidden');
+            reposGrid.classList.add('hidden');
+            userProfileBar.classList.add('hidden');
+            filterControls.classList.add('hidden');
+        }
+
+        function showErrorState(message) {
+            statusMessage.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation text-4xl mb-3 text-red-400"></i>
+                <h3 class="text-lg font-semibold text-slate-200">אירעה שגיאה</h3>
+                <p class="text-sm text-red-400/90 mt-1">${message}</p>
+            `;
+            statusMessage.classList.remove('hidden');
+            reposGrid.classList.add('hidden');
+            userProfileBar.classList.add('hidden');
+            filterControls.classList.add('hidden');
+        }
+
+        // Event Listeners for Filtering
+        repoSearchInput.addEventListener('input', renderFilteredRepos);
+        langFilter.addEventListener('change', renderFilteredRepos);
+        sortSelect.addEventListener('change', renderFilteredRepos);
+
+        // Language Colors Mapping
+        function getLanguageColor(lang) {
+            const colors = {
+                JavaScript: '#f1e05a',
+                TypeScript: '#3178c6',
+                HTML: '#e34c26',
+                CSS: '#563d7c',
+                Python: '#3572A5',
+                Java: '#b07219',
+                CPlusPlus: '#f34b7d',
+                'C#': '#178600',
+                PHP: '#4F5D95',
+                Ruby: '#701516',
+                Go: '#00ADD8',
+                Rust: '#deb887',
+                Vue: '#41b883',
+                Shell: '#89e051'
+            };
+            return colors[lang] || '#94a3b8';
+        }
+    </script>
+</body>
+</html>
